@@ -42,7 +42,6 @@
     private string? city;
     private string? state;
     private string? country;
-   // private string? CurrentCondition;
     private string? zipCode;
     private string? iconUrl;
     private string? timeUpdated;
@@ -57,13 +56,11 @@
         ApiBaseUrl = Config["WeatherApiSettings:WeatherApiUrl"];
     }
 
-    // Inject the JSRuntime service; needed to read the zip code from the input field on the form
-    [Inject] private IJSRuntime JSRuntime { get; set; }
+    // Inject the JSRuntime service; needed to read the zip code from the input field on the page
+    [Inject] private IJSRuntime? JSRuntime { get; set; }
 
     private async Task GetWeather()
     {
-        apiKey = Config["WeatherApiSettings:WeatherApiKey"];
-        ApiBaseUrl = Config["WeatherApiSettings:WeatherApiUrl"];
         var weatherDataReader = new WeatherDataReader();
         zipCode = await JSRuntime.InvokeAsync<string>("eval", "document.querySelector('input[name=zip_code]').value");
         var url = $"{ApiBaseUrl}?key={apiKey}&q={zipCode}";
