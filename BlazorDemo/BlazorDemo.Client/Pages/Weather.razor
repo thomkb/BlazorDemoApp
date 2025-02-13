@@ -1,6 +1,8 @@
-﻿@page "/weather"
+﻿@using Serilog
+@page "/weather"
 @rendermode InteractiveAuto
 @inject IConfiguration Config
+@inject Serilog.ILogger Logger
 
 <PageTitle>Weather</PageTitle>
 
@@ -64,7 +66,7 @@
         var weatherDataReader = new WeatherDataReader();
         zipCode = await JSRuntime.InvokeAsync<string>("eval", "document.querySelector('input[name=zip_code]').value");
         var url = $"{ApiBaseUrl}?key={apiKey}&q={zipCode}";
-        weatherData = await weatherDataReader.ReadFromApi(url);
+        weatherData = await weatherDataReader.ReadFromApi(url, Logger);
 
         if (weatherData != null)
         {

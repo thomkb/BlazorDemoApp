@@ -1,5 +1,19 @@
 ﻿using BlazorDemo.Client.Pages;
 using BlazorDemo.Components;
+using Serilog;
+using Serilog.Core;
+using Serilog.Debugging;
+using Serilog.Extensions.Logging;
+using Serilog.Sinks.SystemConsole; // Add this using directive
+
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .Build();
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+builder.Services.AddSingleton<Serilog.ILogger>(Log.Logger);
 
 var app = builder.Build();
 
