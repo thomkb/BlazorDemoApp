@@ -1,0 +1,89 @@
+﻿@page "/weather"
+@rendermode InteractiveAuto
+@inject IConfiguration Config
+
+<PageTitle>Weather</PageTitle>
+
+<h1>Weather from WeatherAPI</h1>
+
+<p class="container-md my-5">Enter your zip code: <input name="zip_code" />
+    <br />
+    <button class="btn btn-outline-primary" @onclick="GetWeather">Get Weather</button>
+</p>
+
+@if (isFirstTime != true)
+{    
+    @if (isGoodWeatherCall)
+    {
+        <p class="container-sm my-3">
+            <strong>Current weather condition for @city, @state, @country  @zipCode:</strong> @weatherInfo
+            <img src="@iconUrl" alt="Weather Icon" />
+            <br />
+            <strong>Tempurature:</strong> @weatherData.Current.TempF degrees Fahrenheit, but it feels like @weatherData.Current.FeelslikeF degrees.
+            <br />
+            <strong>Wind:</strong> @weatherData.Current.WindMph mph, from the @weatherData.Current.WindDir. Gusts up to @weatherData.Current.GustMph mph.
+        </p> 
+        <p class="container-sm my-3">
+            <strong>Last updated:</strong> @timeUpdated
+        </p>
+    }
+    else
+    {
+        <p class="container-sm my-3">
+            <strong>Cannot retrieve weather information for @zipCode.</strong> 
+        </p>
+    }
+}
+
+@code {
+    private string? apiKey;
+    private string? ApiBaseUrl;  
+    private string? weatherInfo;
+    private string? city;
+    private string? state;
+    private string? country;
+   // private string? CurrentCondition;
+    private string? zipCode;
+    private string? iconUrl;
+    private string? timeUpdated;
+    private bool isFirstTime = true;
+    private bool isGoodWeatherCall;
+    WeatherDataFromApi? weatherData;
+
+    // Read the API key and base URL from the appsettings.json file on initialization of the component
+    protected override void OnInitialized()
+    {
+        apiKey = Config["WeatherApiSettings:WeatherApiKey"];
+        ApiBaseUrl = Config["WeatherApiSettings:WeatherApiUrl"];
+    }
+
+    // Inject the JSRuntime service; needed to read the zip code from the input field on the form
+    [Inject] private IJSRuntime JSRuntime { get; set; }
+
+    private async Task GetWeather()
+    {
+        apiKey = Config["WeatherApiSettings:WeatherApiKey"];
+        ApiBaseUrl = Config["WeatherApiSettings:WeatherApiUrl"];
+        var weatherDataReader = new WeatherDataReader();
+        zipCode = await JSRuntime.InvokeAsync<string>("eval", "document.querySelector('input[name=zip_code]').value");
+        var url = $"{ApiBaseUrl}?key={apiKey}&q={zipCode}";
+        weatherData = await weatherDataReader.ReadFromApi(url);
+
+        if (weatherData != null)
+        {
+            weatherInfo = weatherData.Current.Condition.Text;
+            city = weatherData.Location.Name;
+            state = weatherData.Location.Region;
+            country = weatherData.Location.Country;
+            iconUrl = weatherData.Current.Condition.Icon;
+            timeUpdated = weatherData.Current.LastUpdated;
+        }
+        else
+        {
+            weatherInfo = "Unable to retrieve weather information for that zip code.";
+            weatherData = null;
+        }
+        isGoodWeatherCall = weatherData != null;
+        isFirstTime = false;
+    }
+}
