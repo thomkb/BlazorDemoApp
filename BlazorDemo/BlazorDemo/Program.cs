@@ -1,10 +1,5 @@
-﻿using BlazorDemo.Client.Pages;
-using BlazorDemo.Components;
+﻿using BlazorDemo.Components;
 using Serilog;
-using Serilog.Core;
-using Serilog.Debugging;
-using Serilog.Extensions.Logging;
-using Serilog.Sinks.SystemConsole; // Add this using directive
 
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
@@ -38,11 +33,9 @@ else
 }
 
 app.UseHttpsRedirection();
-
-
 app.UseAntiforgery();
-
 app.MapStaticAssets();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
