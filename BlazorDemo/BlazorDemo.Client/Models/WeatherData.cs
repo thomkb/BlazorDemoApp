@@ -90,10 +90,10 @@ public class CurrentWeather
     public int Cloud { get; set; }
 
     [JsonPropertyName("feelslike_c")]
-    public double FeelslikeC { get; set; }
+    public double FeelsLikeC { get; set; }
 
     [JsonPropertyName("feelslike_f")]
-    public double FeelslikeF { get; set; }
+    public double FeelsLikeF { get; set; }
 
     [JsonPropertyName("windchill_c")]
     public double WindchillC { get; set; }

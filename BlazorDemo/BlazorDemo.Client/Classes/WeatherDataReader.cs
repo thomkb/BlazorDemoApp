@@ -26,13 +26,13 @@ public class WeatherDataReader
             _logger.Error(ex, msg);
             response = null;
         }
+
         if (response == null)
         {
             return null;
         }
 
-        var retVal = JsonSerializer.Deserialize<WeatherDataFromApi>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        return retVal;
+        return JsonSerializer.Deserialize<WeatherDataFromApi>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
 }
 

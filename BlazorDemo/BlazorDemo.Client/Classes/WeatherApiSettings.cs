@@ -2,6 +2,6 @@
 
 public class WeatherApiSettings
 {
-    public string WeatherBaseUrl { get; set; }
-    public string WeatherApiKey { get; set; }
+    public string WeatherBaseUrl { get; set; } = string.Empty;
+    public string WeatherApiKey { get; set; } = string.Empty;
 }
