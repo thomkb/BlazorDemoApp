@@ -1,40 +1,62 @@
 @using Serilog
+@using Models.WeatherDisplayData
 
 @inject IConfiguration Config
 @inject Serilog.ILogger Logger
 @page "/weather"
 @rendermode InteractiveAuto
-@* @rendermode @(new InteractiveAutoRenderMode(prerender: false)) *@
 
 
 <h1 class="container-md my-3">Weather from WeatherAPI</h1>
 <p class="container-md my-5">
     <strong>Enter a zip code and click the button to get the current weather conditions:</strong>  <input name="zip_code" />
     <br />
-    <button class="btn btn-outline-primary" @onclick="GetWeather">Get Weather</button>
+    <button class="btn btn-outline-primary" @onclick="GetWeatherAsync">Get Weather</button>
 </p>
 <p class ="container-sm my-3">
     <strong>Choose the unit of measurement:</strong>
     <InputRadioGroup class="btn btn-group" @bind-Value="isMetric">
-        <InputRadio Value="true" /> Metric (Celsius, Kilometers)      
-        <InputRadio Value="false" /> US (Fahrenheit, Miles)
+        <InputRadio id="metricTrue" Value="true" /> Metric (Celsius, Kilometers)
+        <InputRadio id="metricFalse" Value="false" /> US (Fahrenheit, Miles)
     </InputRadioGroup>
 </p>
 
 @if (isFirstTime != true)
 {    
-    @if (isGoodWeatherCall && weatherData?.Current != null)
+    @if (isGoodWeatherCall && weatherData?.City != null)
     {
+        <div class="container-sm my-3">
+            <strong>Current weather condition for @weatherData.City, @weatherData.State, @weatherData.Country  @zipCode</strong>           
+            <img src="@weatherData.IconUrl" alt="Weather Icon" class="position-relative end-150" />          
+            <br/>
+            <p class="container-sm">
+                <strong>Description:</strong> @weatherData.WeatherDescription
+                <br />
+                <strong>Precipitation:</strong> @weatherData.Precipitation
+                <br />
+                <strong>Tempurature:</strong> @weatherData.Temperature, but it feels like @weatherData.WindChill
+                <br />
+                <strong>Wind Chill:</strong> @weatherData.WindChill
+                <br />
+                <strong>Heat Index:</strong> @weatherData.HeatIndex
+                <br />
+                <strong>Wind:</strong> @weatherData.Wind, with gusts up to @weatherData.WindGust.
+                <br />
+                <strong>Wind Direction:</strong> @weatherData.WindDirection (@weatherData.WindDegree)
+                <br />
+                <strong>Humidity:</strong> @weatherData.Humidity
+                <br />
+                <strong>Barometric Pressure:</strong> @weatherData.Pressure
+                <br />
+                <strong>Dewpoint:</strong> @weatherData.Dewpoint
+                <br />
+                <strong>Visibility:</strong> @weatherData.Visibility
+                <br />
+                <strong>UV Index:</strong> @weatherData.UvIndex
+            </p>
+        </div> 
         <p class="container-sm my-3">
-            <strong>Current weather condition for @city, @state, @country  @zipCode:</strong> @weatherInfo
-            <img src="@iconUrl" alt="Weather Icon" />
-            <br />
-            <strong>Tempurature:</strong> @TempValue degrees @degreeName, but it feels like @WindchillValue degrees @degreeName.
-            <br />
-            <strong>Wind:</strong> @WindspeedValue @distanceName per hour, from the @weatherData.Current.WindDir, with gusts up to @WindGustValue @distanceName per hour.
-        </p> 
-        <p class="container-sm my-3">
-            <strong>Last updated:</strong> @timeUpdated
+            <strong>Last updated:</strong> @weatherData.TimeUpdated
         </p>
     }
     else
@@ -47,25 +69,26 @@
 
 
 @code {
+    private bool _isMetricValue = true;
     private string? apiKey;
     private string? ApiBaseUrl;  
-    private string? weatherInfo;
-    private string? city;
-    private string? state;
-    private string? country;
     private string? zipCode;
-    private string? iconUrl;
-    private string? timeUpdated;
-    private string degreeName => isMetric ? "Celsius" : "Fahrenheit";
-    private string distanceName => isMetric ? "Kilometers" : "Miles";
-    private string? TempValue => isMetric ? weatherData?.Current.TempC.ToString() : weatherData?.Current.TempF.ToString();
-    private string? WindspeedValue => isMetric ? weatherData?.Current.WindKph.ToString() : weatherData?.Current.WindMph.ToString();
-    private string? WindGustValue => isMetric ? weatherData?.Current.GustKph.ToString() : weatherData?.Current.GustMph.ToString();
-    private string? WindchillValue => isMetric ? weatherData?.Current.FeelsLikeC.ToString() : weatherData?.Current.FeelsLikeF.ToString();
-    private bool isMetric = true;
     private bool isFirstTime = true;
     private bool isGoodWeatherCall;
-    WeatherDataFromApi? weatherData;
+    WeatherDisplayData? weatherData;
+    private bool isMetric
+    { 
+        get => _isMetricValue;
+
+        set
+        {
+            if (_isMetricValue != value)
+            {
+                _isMetricValue = value;
+                _ = OnUnitsChangedAsync();
+            }
+        }
+    }
 
     // Read the API key and base URL from the appsettings.json file on initialization of the component
     protected override void OnInitialized()
@@ -77,29 +100,25 @@
     // Inject the JSRuntime service; needed to read the zip code from the input field on the page
     [Inject] private IJSRuntime? JSRuntime { get; set; }
 
-    private async Task GetWeather()
+    private async Task GetWeatherAsync()
     {
-        var weatherDataReader = new WeatherDataReader();
+        WeatherDataReader? weatherDataReader = new WeatherDataReader();
         zipCode = await JSRuntime.InvokeAsync<string>("eval", "document.querySelector('input[name=zip_code]').value");
         isMetric = await JSRuntime.InvokeAsync<bool>("eval", "document.querySelector('input[name=isMetric]').checked");
-        var url = $"{ApiBaseUrl}?key={apiKey}&q={zipCode}";
-        weatherData = await weatherDataReader.ReadFromApi(url, Logger);
+        var apiUrl = $"{ApiBaseUrl}?key={apiKey}&q={zipCode}";
 
-        if (weatherData != null)
+        if (weatherDataReader != null)
         {
-            weatherInfo = weatherData.Current.Condition.Text;
-            city = weatherData.Location.Name;
-            state = weatherData.Location.Region;
-            country = weatherData.Location.Country;
-            iconUrl = weatherData.Current.Condition.Icon;
-            timeUpdated = weatherData.Current.LastUpdated;
+            weatherData = await weatherDataReader.ReadFromApi(apiUrl, isMetric, Logger);
         }
-        else
-        {
-            weatherInfo = "Unable to retrieve weather information for that zip code.";
-            weatherData = null;
-        }
+
         isGoodWeatherCall = weatherData != null;
         isFirstTime = false;
+    }
+
+    private async Task OnUnitsChangedAsync()
+    {
+        await GetWeatherAsync();
+        StateHasChanged();
     }
 }

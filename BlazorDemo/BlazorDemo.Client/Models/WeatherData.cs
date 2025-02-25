@@ -10,6 +10,8 @@ public class WeatherDataFromApi
 
     [JsonPropertyName("current")]
     public CurrentWeather? Current { get; set; }
+
+    public string? PostalCode { get; set; }
 }
 
 public class Location
@@ -102,10 +104,10 @@ public class CurrentWeather
     public double WindchillF { get; set; }
 
     [JsonPropertyName("heatindex_c")]
-    public double HeatindexC { get; set; }
+    public double HeatIndexC { get; set; }
 
     [JsonPropertyName("heatindex_f")]
-    public double HeatindexF { get; set; }
+    public double HeatIndexF { get; set; }
 
     [JsonPropertyName("dewpoint_c")]
     public double DewpointC { get; set; }
