@@ -34,7 +34,7 @@
                 <br />
                 <strong>Precipitation:</strong> @weatherData.Precipitation
                 <br />
-                <strong>Tempurature:</strong> @weatherData.Temperature, but it feels like @weatherData.WindChill
+                <strong>Temperature:</strong> @weatherData.Temperature, but it feels like @weatherData.WindChill
                 <br />
                 <strong>Wind Chill:</strong> @weatherData.WindChill
                 <br />
@@ -57,16 +57,20 @@
         </div> 
         <p class="container-sm my-3">
             <strong>Last updated:</strong> @weatherData.TimeUpdated
+            <br />
+            <strong>Local Time:</strong> @weatherData.LocalTime
+        </p>
+        <p class="container-sm my-3">
+            <a href="https://www.weatherapi.com/" target="_blank">Weather data provided by WeatherAPI.com</a>
         </p>
     }
     else
     {
         <p class="container-sm my-3">
-            <strong>Cannot retrieve weather information for @zipCode.</strong> 
+            <strong>Cannot retrieve weather information for '@zipCode'.</strong> 
         </p>
     }
 }
-
 
 @code {
     private bool _isMetricValue = true;

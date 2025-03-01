@@ -28,6 +28,7 @@ public class WeatherDisplayData
     public string? Visibility { get; set; } = string.Empty;
     public string? UvIndex { get; set; } = string.Empty;
     public string? CloudCover { get; set; } = string.Empty;
+    public string? LocalTime { get; set; } = string.Empty;
 
     public WeatherDisplayData() { }
 
@@ -59,6 +60,7 @@ public class WeatherDisplayData
             weatherDisplayData.HeatIndex = isMetric ? $"{weatherData.Current?.HeatIndexC} °C" : $"{weatherData.Current?.HeatIndexF} °F";
             weatherDisplayData.Dewpoint = isMetric ? $"{weatherData.Current?.DewpointC} °C" : $"{weatherData.Current?.DewpointF} °F";
             weatherDisplayData.Precipitation = isMetric ? $"{weatherData.Current?.PrecipMm} mm" : $"{weatherData.Current?.PrecipIn} in";
+            weatherDisplayData.LocalTime = $"{weatherData.Location?.Localtime}";
         }
         else
         {
